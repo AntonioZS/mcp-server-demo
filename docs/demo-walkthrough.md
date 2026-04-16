@@ -99,3 +99,36 @@ If Inspector calls fail:
 - confirm the URL ends with `/mcp/`
 - confirm the `Authorization` header is present
 - verify the token from `/auth/demo-tokens`
+
+## Local tool call via streamable curl
+```bash
+SESSION_ID=$(curl -s -D - \
+  -X POST http://127.0.0.1:8000/mcp/ \
+  -H "Authorization: Bearer course-demo-token" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"curl-demo","version":"0.1"}}}' \
+  | grep -i "mcp-session-id" | awk '{print $2}' | tr -d '\r')
+
+echo "Session: $SESSION_ID"
+
+curl -s \
+  -X POST http://127.0.0.1:8000/mcp/ \
+  -H "Authorization: Bearer course-demo-token" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -H "mcp-session-id: $SESSION_ID" \
+  -d '{"jsonrpc":"2.0","method":"notifications/initialized"}'
+
+curl -s \
+  -X POST http://127.0.0.1:8000/mcp/ \
+  -H "Authorization: Bearer course-demo-token" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -H "mcp-session-id: $SESSION_ID" \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"estimate_delivery_effort","arguments":{"complexity":"high","integration_points":2,"risk_level":"medium"}}}'
+```
+
+{"jsonrpc":"2.0","id":2,"method":"tools/list"}
+
+{"jsonrpc":"2.0","id":2,"method":"resources/read","params":{"uri":"course://outline"}}
