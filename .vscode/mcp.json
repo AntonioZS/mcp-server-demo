@@ -1,0 +1,14 @@
+{
+    "inputs": [],
+    "servers": {
+       "streamable-demo": {
+           "command": "/Users/zaballoa/.local/bin/uv",
+           "args": [
+               "run", 
+               "python",
+               "servers/streamble_http/server.py",
+               "mcp"
+           ]
+       }
+    }
+}
