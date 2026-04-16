@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,7 +14,16 @@ settings = get_settings()
 logging.basicConfig(level=getattr(logging, settings.log_level.upper(), logging.INFO))
 
 mcp = create_mcp_server()
-app = FastAPI(title=settings.app_name, docs_url=settings.docs_path)
+mcp_http_app = mcp.streamable_http_app()
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    async with mcp.session_manager.run():
+        yield
+
+
+app = FastAPI(title=settings.app_name, docs_url=settings.docs_path, lifespan=lifespan)
 
 if settings.allowed_origins:
     app.add_middleware(
@@ -28,7 +38,7 @@ if settings.enable_request_logging:
     app.add_middleware(RequestLoggingMiddleware)
 
 app.add_middleware(BearerTokenMiddleware, settings=settings, protected_prefixes=(settings.mcp_path, "/demo"))
-app.mount(settings.mcp_path, mcp.streamable_http_app())
+app.mount(settings.mcp_path, mcp_http_app)
 
 
 @app.get("/")
