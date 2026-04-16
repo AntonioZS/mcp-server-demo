@@ -15,13 +15,29 @@ class DemoSettings(BaseSettings):
     docs_path: str = "/docs"
     log_level: str = "INFO"
     allowed_origins: list[str] = Field(default_factory=lambda: ["*"])
-    demo_bearer_token: str = "course-demo-token"
+    demo_presenter_token: str = "course-demo-token"
+    demo_viewer_token: str = "course-viewer-token"
     auth_header_name: str = "Authorization"
     enable_request_logging: bool = True
 
     @property
     def base_url(self) -> str:
         return f"http://{self.host}:{self.port}"
+
+    @property
+    def demo_token_catalog(self) -> dict[str, dict[str, str | list[str]]]:
+        return {
+            self.demo_presenter_token: {
+                "role": "presenter",
+                "client_id": "course-presenter",
+                "scopes": ["mcp:read", "mcp:execute", "demo:admin"],
+            },
+            self.demo_viewer_token: {
+                "role": "viewer",
+                "client_id": "course-viewer",
+                "scopes": ["mcp:read"],
+            },
+        }
 
 
 @lru_cache(maxsize=1)

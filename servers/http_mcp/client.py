@@ -22,7 +22,7 @@ logger = logging.getLogger("http_mcp_client")
 async def main() -> None:
     settings = get_settings()
     endpoint = f"{settings.base_url}{settings.mcp_path.rstrip('/')}/"
-    headers = {"Authorization": f"Bearer {settings.demo_bearer_token}"}
+    headers = {"Authorization": f"Bearer {settings.demo_presenter_token}"}
 
     async with streamablehttp_client(endpoint, headers=headers) as (read_stream, write_stream, _):
         async with ClientSession(read_stream, write_stream) as session:
